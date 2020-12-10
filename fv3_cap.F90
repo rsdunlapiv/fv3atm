@@ -870,9 +870,11 @@ module fv3gfs_cap_mod
 !
     ! --- advertise Fields in importState and exportState -------------------
 
-    if( cpl ) then
+    ! always advertise
 
-        ! importable fields:
+    !if( cpl ) then
+
+       ! importable fields:
         do i = 1, size(ImportFieldsList)
           if (importFieldShare(i)) then
             call NUOPC_Advertise(importState,         &
@@ -885,23 +887,28 @@ module fv3gfs_cap_mod
             if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
           end if
         end do
-      
-        ! exportable fields:
-        do i = 1, size(exportFieldsList)
-          if (exportFieldShare(i)) then
-            call NUOPC_Advertise(exportState,                            &
-                                 StandardName=trim(exportFieldsList(i)), &
-                                 SharePolicyField="share", vm=fcstVM, rc=rc)
-            if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
-          else
-            call NUOPC_Advertise(exportState,         &
-                                 StandardName=trim(exportFieldsList(i)), vm=fcstVM, rc=rc)
-            if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
-          end if
-        end do
-      
-      if(mype==0) print *,'in fv3_cap, aft import, export fields in atmos'
-    endif
+
+     !end if
+  
+     
+     ! exportable fields:
+     call ESMF_LogWrite(subname//" Advertising fv3 fields.", ESMF_LOGMSG_INFO)
+     do i = 1, size(exportFieldsList)
+        if (exportFieldShare(i)) then
+           call NUOPC_Advertise(exportState,                            &
+                StandardName=trim(exportFieldsList(i)), &
+                SharePolicyField="share", vm=fcstVM, rc=rc)
+           if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
+           call ESMF_LogWrite(subname//" --> SharePolicyField=share for field "//trim(exportFieldsList(i)), ESMF_LOGMSG_INFO)
+        else
+           call NUOPC_Advertise(exportState,         &
+                StandardName=trim(exportFieldsList(i)), vm=fcstVM, rc=rc)
+           if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
+        end if
+     end do
+     
+     if(mype==0) print *,'in fv3_cap, aft import, export fields in atmos'
+   
 
     if(mype==0) print *,'in fv3_cap, init time=',mpi_wtime()-timeis
 !-----------------------------------------------------------------------
@@ -924,7 +931,7 @@ module fv3gfs_cap_mod
 
     ! --- conditionally realize or remove Fields in importState and exportState -------------------
 
-    if ( cpl ) then
+    !if ( cpl ) then
 
       isPetLocal = ESMF_GridCompIsPetLocal(fcstComp, rc=rc)
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__,  file=__FILE__)) return
@@ -950,7 +957,7 @@ module fv3gfs_cap_mod
       end if
 !jw
       call fillExportFields(exportData)
-    endif
+    !endif
 
   end subroutine InitializeRealize
 
